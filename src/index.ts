@@ -44,34 +44,48 @@ class Migrate {
     this.workingPath = [process.env.PWD].join('/') + '/';
     console.info('[info] @rdlabo/capacitor-plugin-to-v4 path is ' + __dirname);
     console.info('[info] working path is ' + process.cwd());
-
-    this.checkPluginDir();
   }
 
   public run() {
+    const notFoundFile = this.checkPluginDir();
+    if (notFoundFile) {
+      console.error(`[error] This folder may not plugin folder. Not found ${notFoundFile}. Please check path: ` + this.workingPath);
+      return;
+    }
+
     // prepare changeFileTask
     (() => {
-      this.rewritePackageJson();
+      const rewritePackageJson = this.rewritePackageJson();
+      console.log('[info] get update lines of ' + rewritePackageJson.join(' and '));
 
       // iOS
-      this.rewritePod();
-      this.rewritePbxproj();
+      const rewritePod = this.rewritePod();
+      console.log('[info] get update lines of ' + rewritePod.join(' and '));
+
+      const rewritePbxproj = this.rewritePbxproj();
+      console.log('[info] get update lines of ' + rewritePbxproj.join(' and '));
 
       // Android
-      this.rewriteGradle();
-      this.rewriteGradleWrapper();
+      const rewriteGradle = this.rewriteGradle();
+      console.log('[info] get update lines of ' + rewriteGradle.join(' and '));
+
+      const rewriteGradleWrapper = this.rewriteGradleWrapper();
+      console.log('[info] get update lines of ' + rewriteGradleWrapper.join(' and '));
     })();
 
     // run changeFileTask
     for (let item of this.changeFileTask) {
       writeFileSync(item.path, item.content);
+      console.log('[success] write ' + item.path);
     }
     copyFileSync(__dirname + '/assets/gradlew', this.workingPath + 'android/gradlew');
+    console.log('[success] write ' + this.workingPath + 'android/gradlew');
 
-    console.info('[info] success migrate to v4')
+    console.info('success migrate to v4🎉');
+    console.info('Next step: You should run `npm install`')
   }
 
-  private rewritePackageJson() {
+  private rewritePackageJson(): string[] {
     const path = this.workingPath + 'package.json';
     const podSpec = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
     const newLines = podSpec.map(line => {
@@ -89,9 +103,12 @@ class Migrate {
       path,
       content: newLines.join('\n')
     });
+
+    return [path];
   }
 
-  private rewritePod() {
+  private rewritePod(): string[] {
+    const resultPath: string[] = [];
     (() => {
       const path = this.workingPath + this.podSpecFile;
       const podSpec = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
@@ -105,6 +122,7 @@ class Migrate {
         path,
         content: newLines.join('\n')
       });
+      resultPath.push(path);
     })();
 
     (() => {
@@ -120,10 +138,13 @@ class Migrate {
         path,
         content: newLines.join('\n')
       });
+      resultPath.push(path);
     })();
+
+    return resultPath;
   }
 
-  private rewritePbxproj() {
+  private rewritePbxproj(): string[] {
     const path = this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj';
     const pbxproj = readFileSync(this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' }).split(/\r\n|\n/);
     const newLines = pbxproj.map((line, i) => {
@@ -140,9 +161,11 @@ class Migrate {
       path,
       content: newLines.join('\n')
     });
+
+    return [path];
   }
 
-  private rewriteGradle() {
+  private rewriteGradle(): string[] {
     const path = this.workingPath + 'android/build.gradle';
     const gradle = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
 
@@ -172,9 +195,11 @@ class Migrate {
       path,
       content: newLines.join('\n')
     });
+
+    return [path];
   }
 
-  private rewriteGradleWrapper() {
+  private rewriteGradleWrapper(): string[] {
     const path = this.workingPath + 'android/gradle/wrapper/gradle-wrapper.properties';
     const gradle = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
 
@@ -190,9 +215,11 @@ class Migrate {
       path,
       content: newLines.join('\n')
     });
+
+    return [path];
   }
 
-  private checkPluginDir() {
+  private checkPluginDir(): string | undefined {
     // Capacitor Pluginのフォルダかを簡易チェック
     const sources = readdirSync(this.workingPath);
     const notFoundFile = checkExistsFiles.find(file => {
@@ -208,9 +235,7 @@ class Migrate {
         return file;
       }
     });
-    if (notFoundFile) {
-      throw `[error] This folder may not plugin folder. Not found ${notFoundFile}. Please check path: ` + this.workingPath;
-    }
+    return notFoundFile;
   }
 }
 

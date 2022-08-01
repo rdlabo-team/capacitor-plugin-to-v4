@@ -36,27 +36,39 @@ var Migrate = /** @class */ (function () {
         this.workingPath = [process.env.PWD].join('/') + '/';
         console.info('[info] @rdlabo/capacitor-plugin-to-v4 path is ' + __dirname);
         console.info('[info] working path is ' + process.cwd());
-        this.checkPluginDir();
     }
     Migrate.prototype.run = function () {
         var _this = this;
+        var notFoundFile = this.checkPluginDir();
+        if (notFoundFile) {
+            console.error("[error] This folder may not plugin folder. Not found ".concat(notFoundFile, ". Please check path: ") + this.workingPath);
+            return;
+        }
         // prepare changeFileTask
         (function () {
-            _this.rewritePackageJson();
+            var rewritePackageJson = _this.rewritePackageJson();
+            console.log('[info] get update lines of ' + rewritePackageJson.join(' and '));
             // iOS
-            _this.rewritePod();
-            _this.rewritePbxproj();
+            var rewritePod = _this.rewritePod();
+            console.log('[info] get update lines of ' + rewritePod.join(' and '));
+            var rewritePbxproj = _this.rewritePbxproj();
+            console.log('[info] get update lines of ' + rewritePbxproj.join(' and '));
             // Android
-            _this.rewriteGradle();
-            _this.rewriteGradleWrapper();
+            var rewriteGradle = _this.rewriteGradle();
+            console.log('[info] get update lines of ' + rewriteGradle.join(' and '));
+            var rewriteGradleWrapper = _this.rewriteGradleWrapper();
+            console.log('[info] get update lines of ' + rewriteGradleWrapper.join(' and '));
         })();
         // run changeFileTask
         for (var _i = 0, _a = this.changeFileTask; _i < _a.length; _i++) {
             var item = _a[_i];
             (0, fs_1.writeFileSync)(item.path, item.content);
+            console.log('[success] write ' + item.path);
         }
         (0, fs_1.copyFileSync)(__dirname + '/assets/gradlew', this.workingPath + 'android/gradlew');
-        console.info('[info] success migrate to v4');
+        console.log('[success] write ' + this.workingPath + 'android/gradlew');
+        console.info('success migrate to v4🎉');
+        console.info('Next step: You should run `npm install`');
     };
     Migrate.prototype.rewritePackageJson = function () {
         var _this = this;
@@ -77,9 +89,11 @@ var Migrate = /** @class */ (function () {
             path: path,
             content: newLines.join('\n')
         });
+        return [path];
     };
     Migrate.prototype.rewritePod = function () {
         var _this = this;
+        var resultPath = [];
         (function () {
             var path = _this.workingPath + _this.podSpecFile;
             var podSpec = (0, fs_1.readFileSync)(path, { encoding: 'utf8' }).split(/\r\n|\n/);
@@ -93,6 +107,7 @@ var Migrate = /** @class */ (function () {
                 path: path,
                 content: newLines.join('\n')
             });
+            resultPath.push(path);
         })();
         (function () {
             var path = _this.workingPath + 'ios/Podfile';
@@ -107,7 +122,9 @@ var Migrate = /** @class */ (function () {
                 path: path,
                 content: newLines.join('\n')
             });
+            resultPath.push(path);
         })();
+        return resultPath;
     };
     Migrate.prototype.rewritePbxproj = function () {
         var _this = this;
@@ -126,6 +143,7 @@ var Migrate = /** @class */ (function () {
             path: path,
             content: newLines.join('\n')
         });
+        return [path];
     };
     Migrate.prototype.rewriteGradle = function () {
         var _this = this;
@@ -152,6 +170,7 @@ var Migrate = /** @class */ (function () {
             path: path,
             content: newLines.join('\n')
         });
+        return [path];
     };
     Migrate.prototype.rewriteGradleWrapper = function () {
         var path = this.workingPath + 'android/gradle/wrapper/gradle-wrapper.properties';
@@ -166,6 +185,7 @@ var Migrate = /** @class */ (function () {
             path: path,
             content: newLines.join('\n')
         });
+        return [path];
     };
     Migrate.prototype.checkPluginDir = function () {
         var _this = this;
@@ -185,9 +205,7 @@ var Migrate = /** @class */ (function () {
                 return file;
             }
         });
-        if (notFoundFile) {
-            throw "[error] This folder may not plugin folder. Not found ".concat(notFoundFile, ". Please check path: ") + this.workingPath;
-        }
+        return notFoundFile;
     };
     return Migrate;
 }());
