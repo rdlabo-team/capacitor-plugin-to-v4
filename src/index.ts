@@ -1,4 +1,6 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, copyFileSync} from 'fs';
+#! /usr/bin/env node
+
+import { readFileSync, readdirSync, writeFileSync, copyFileSync} from 'fs';
 
 const checkExistsFiles = [
   '.podspec',
@@ -27,7 +29,7 @@ const changePackageVersion = {
 };
 
 class Migrate {
-  sourceDir = '';
+  workingPath = '';
   podSpecFile = '';
   changeFileTask: {
     path: string;
@@ -39,6 +41,10 @@ class Migrate {
     public cwd: string,
     public argv: string[],
   ) {
+    this.workingPath = [process.env.PWD].join('/') + '/';
+    console.info('[info] @rdlabo/capacitor-plugin-to-v4 path is ' + __dirname);
+    console.info('[info] working path is ' + process.cwd());
+
     this.checkPluginDir();
   }
 
@@ -60,13 +66,13 @@ class Migrate {
     for (let item of this.changeFileTask) {
       writeFileSync(item.path, item.content);
     }
+    copyFileSync(__dirname + '/assets/gradlew', this.workingPath + 'android/gradlew');
 
-    // file copy
-    copyFileSync(process.cwd() + '/src/assets/gradlew', this.sourceDir + 'android/gradlew');
+    console.info('[info] success migrate to v4')
   }
 
   private rewritePackageJson() {
-    const path = this.sourceDir + 'package.json';
+    const path = this.workingPath + 'package.json';
     const podSpec = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
     const newLines = podSpec.map(line => {
       const matchKey = Object.keys(changePackageVersion).find(key => line.includes(key));
@@ -87,7 +93,7 @@ class Migrate {
 
   private rewritePod() {
     (() => {
-      const path = this.sourceDir + this.podSpecFile;
+      const path = this.workingPath + this.podSpecFile;
       const podSpec = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
       const newLines = podSpec.map(line => {
         if (line.includes('s.ios.deployment_target')) {
@@ -102,7 +108,7 @@ class Migrate {
     })();
 
     (() => {
-      const path = this.sourceDir + 'ios/Podfile';
+      const path = this.workingPath + 'ios/Podfile';
       const podSpec = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
       const newLines = podSpec.map(line => {
         if (line.includes('platform :ios')) {
@@ -118,8 +124,8 @@ class Migrate {
   }
 
   private rewritePbxproj() {
-    const path = this.sourceDir + 'ios/Plugin.xcodeproj/project.pbxproj';
-    const pbxproj = readFileSync(this.sourceDir + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' }).split(/\r\n|\n/);
+    const path = this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj';
+    const pbxproj = readFileSync(this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' }).split(/\r\n|\n/);
     const newLines = pbxproj.map((line, i) => {
       if (line.includes('IPHONEOS_DEPLOYMENT_TARGET')) {
         return line.replace(this.RegD, '13.0');
@@ -137,7 +143,7 @@ class Migrate {
   }
 
   private rewriteGradle() {
-    const path = this.sourceDir + 'android/build.gradle';
+    const path = this.workingPath + 'android/build.gradle';
     const gradle = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
 
     const newLines = gradle.map(line => {
@@ -169,7 +175,7 @@ class Migrate {
   }
 
   private rewriteGradleWrapper() {
-    const path = this.sourceDir + 'android/gradle/wrapper/gradle-wrapper.properties';
+    const path = this.workingPath + 'android/gradle/wrapper/gradle-wrapper.properties';
     const gradle = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
 
     const newLines = gradle.map(line => {
@@ -187,14 +193,8 @@ class Migrate {
   }
 
   private checkPluginDir() {
-    if (this.argv.length < 3) {
-      throw '[error] command needs plugin folder path. ex) `npm run migrate path/to/plugin_folder`';
-    }
-
-    this.sourceDir = [process.cwd(), process.argv[2]].join('/') + '/';
-
     // Capacitor Pluginのフォルダかを簡易チェック
-    const sources = readdirSync(this.sourceDir);
+    const sources = readdirSync(this.workingPath);
     const notFoundFile = checkExistsFiles.find(file => {
       if (file === '.podspec' && !sources.find(source => {
         if (source.includes(file)) {
@@ -209,7 +209,7 @@ class Migrate {
       }
     });
     if (notFoundFile) {
-      throw `[error] This folder may not plugin folder. Not found ${notFoundFile}. Please check path: ` + this.sourceDir;
+      throw `[error] This folder may not plugin folder. Not found ${notFoundFile}. Please check path: ` + this.workingPath;
     }
   }
 }
