@@ -26,6 +26,9 @@ const changePackageVersion = {
   '"prettier"': '2.3.0',
   '"prettier-plugin-java"': '1.0.2',
   '"typescript"': '4.1.5',
+  '@capacitor/core': '4.0.0',
+  '@capacitor/ios': '4.0.0',
+  '@capacitor/android': '4.0.0',
 };
 
 class Migrate {
