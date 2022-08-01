@@ -23,9 +23,9 @@ const changeGradleVersion = {
 };
 
 const changePackageVersion = {
-  'prettier': '2.3.0',
-  'prettier-plugin-java': '1.0.2',
-  'typescript': '4.1.5',
+  '"prettier"': '2.3.0',
+  '"prettier-plugin-java"': '1.0.2',
+  '"typescript"': '4.1.5',
 };
 
 class Migrate {
