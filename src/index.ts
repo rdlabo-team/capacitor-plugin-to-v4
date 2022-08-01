@@ -171,7 +171,7 @@ class Migrate {
     const gradle = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
 
     const newLines = gradle.map(line => {
-      if (line.includes('https\://services.gradle.org/distributions/gradle-7.0-all.zip')) {
+      if (line.includes('gradle-7.0-all.zip')) {
         return line.replace('gradle-7.0-all.zip', 'gradle-7.4.2-all.zip');
       }
 
