@@ -1,6 +1,12 @@
 # capacitor-plugin-to-v4
 
-This is a command tool that automatically update the capacitor plugin version 3 to 4.
+This is a command tool that automatically update the capacitor plugin version 3 to 4. This library follows the changes in https://github.com/ionic-team/create-capacitor-plugin/commit/03027bf603626ebfdba084cb9d9a1a359d008554
+
+At least, this library is used to make the following plugins Capacitor4-compatible.
+
+- @capacitor-community/admob
+- @capacitor-community/stripe
+- @capacitor-community/facebook-login
 
 ## usage
 
@@ -34,3 +40,12 @@ Ok to proceed? (y) y
 success migrate to v4🎉
 Next step: You should run `npm install`
 ```
+
+## Troubleshooting
+
+### removed `jcenter()` before run
+
+If plugin had manually removed `jcenter()`, will not work well. When this, you should check `android/build.gradle` and add `mavenCentral()` manually.
+
+For the correct configuration, please click here:
+https://github.com/ionic-team/create-capacitor-plugin/commit/03027bf603626ebfdba084cb9d9a1a359d008554#diff-51795f26cbdfdde24931f6d0f9d6f047f4617fc6a6cb850029cd78c8e0e9b90d
