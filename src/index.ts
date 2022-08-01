@@ -81,6 +81,9 @@ class Migrate {
     copyFileSync(__dirname + '/assets/gradlew', this.workingPath + 'android/gradlew');
     console.log('[success] write ' + this.workingPath + 'android/gradlew');
 
+    copyFileSync(__dirname + '/assets/gradle-wrapper.jar', this.workingPath + 'android/gradle/wrapper/gradle-wrapper.jar');
+    console.log('[success] write ' + this.workingPath + 'android/gradle/wrapper/gradle-wrapper.jar');
+
     console.info('success migrate to v4🎉');
     console.info('Next step: You should run `npm install`')
   }
