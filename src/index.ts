@@ -33,7 +33,7 @@ class Migrate {
     path: string;
     content: string;
   }[] = [];
-  readonly RegD = new RegExp(`[0-9]+(\.\[0-9]+)+(\.\[0-9]+)?`)
+  readonly RegD = new RegExp(`[0-9]+(\.\[0-9]+)?(\.\[0-9]+)?`)
 
   constructor(
     public cwd: string,
