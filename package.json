@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc src/index.ts",
     "migrate": "node src/index.js",
-    "release": "np --yolo"
+    "release": "np --yolo",
+    "prepublishOnly": "npm run build"
   },
   "bin": {
     "migrate": "src/index.js"

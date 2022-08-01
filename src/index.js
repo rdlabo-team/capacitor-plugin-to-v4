@@ -21,9 +21,9 @@ var changeGradleVersion = {
     'rootProject.ext.targetSdkVersion': '32'
 };
 var changePackageVersion = {
-    'prettier': '2.3.0',
-    'prettier-plugin-java': '1.0.2',
-    'typescript': '4.1.5'
+    '"prettier"': '2.3.0',
+    '"prettier-plugin-java"': '1.0.2',
+    '"typescript"': '4.1.5'
 };
 var Migrate = /** @class */ (function () {
     function Migrate(cwd, argv) {
