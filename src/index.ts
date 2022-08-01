@@ -93,8 +93,8 @@ class Migrate {
 
   private rewritePackageJson(): string[] {
     const path = this.workingPath + 'package.json';
-    const podSpec = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
-    const newLines = podSpec.map(line => {
+    const packageJson = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
+    const newLines = packageJson.map(line => {
       const matchKey = Object.keys(changePackageVersion).find(key => line.includes(key));
       if (matchKey) {
         // @ts-ignore
