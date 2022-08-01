@@ -1,6 +1,6 @@
 {
   "name": "@rdlabo/capacitor-plugin-to-v4",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "migrate capacitor plugin from v3 to v4",
   "main": "src/index.js",
   "scripts": {
