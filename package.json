@@ -1,10 +1,11 @@
 {
   "name": "@rdlabo/capacitor-plugin-to-v4",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "migrate capacitor plugin from v3 to v4",
   "main": "src/index.ts",
   "scripts": {
-    "migrate": "ts-node -P tsconfig.json src/index.ts"
+    "migrate": "ts-node -P tsconfig.json src/index.ts",
+    "test": "npm run migrate source"
   },
   "repository": {
     "type": "git",
