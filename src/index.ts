@@ -45,6 +45,8 @@ class Migrate {
   public run() {
     // prepare changeFileTask
     (() => {
+      this.rewritePackageJson();
+
       // iOS
       this.rewritePod();
       this.rewritePbxproj();
@@ -70,7 +72,7 @@ class Migrate {
       const matchKey = Object.keys(changePackageVersion).find(key => line.includes(key));
       if (matchKey) {
         // @ts-ignore
-        return line.replace(this.RegD, changeGradleVersion[matchKey]);
+        return line.replace(this.RegD, changePackageVersion[matchKey]);
       }
       if (line.includes('verify:ios')) {
         return line.replace('-scheme Plugin && cd', '-scheme Plugin -destination generic/platform=iOS && cd');
