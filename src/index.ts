@@ -201,10 +201,6 @@ class Migrate {
         }
       }
 
-      if (line.includes('mavenCentral()') && mavenLines.length > 2) {
-        return '';
-      }
-
       if (line.includes('sourceCompatibility JavaVersion') || line.includes('targetCompatibility JavaVersion')) {
         return line.replace('VERSION_1_8', 'VERSION_11');
       }
