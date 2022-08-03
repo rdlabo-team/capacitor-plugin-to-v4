@@ -152,13 +152,21 @@ class Migrate {
 
   private rewritePbxproj(): string[] {
     const path = this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj';
-    const pbxproj = readFileSync(this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' }).split(/\r\n|\n/);
+    const pbxprojTxt = readFileSync(this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' });
+
+    const isAddSupportsMaccatalyst = !pbxprojTxt.includes('SUPPORTS_MACCATALYST = NO');
+
+    const pbxproj = pbxprojTxt.split(/\r\n|\n/);
     const newLines = pbxproj.map((line, i) => {
       if (line.includes('IPHONEOS_DEPLOYMENT_TARGET')) {
         return line.replace(this.RegD, '13.0');
       }
-      if (line.includes('SKIP_INSTALL')) {
+      if (line.includes('SKIP_INSTALL') && isAddSupportsMaccatalyst) {
         return line + '\n\t\t\t\tSUPPORTS_MACCATALYST = NO;'
+      }
+
+      if (line.endsWith('SUPPORTS_MACCATALYST = NO')){
+        return '\t\t\t\tSUPPORTS_MACCATALYST = NO;'
       }
 
       return line;
@@ -175,6 +183,8 @@ class Migrate {
     const path = this.workingPath + 'android/build.gradle';
     const gradle = readFileSync(path, { encoding: 'utf8' }).split(/\r\n|\n/);
 
+    const mavenLines = gradle.filter(d => d.includes('mavenCentral()'));
+
     const newLines = gradle.map(line => {
       const matchKey = Object.keys(changeGradleVersion).find(key => line.includes(key));
       if (matchKey) {
@@ -183,10 +193,15 @@ class Migrate {
       }
 
       if (line.includes('jcenter()')) {
-        return '        mavenCentral()';
+        // if not use mavenCentral
+        if (mavenLines.length < 2) {
+          return '        mavenCentral()';
+        } else {
+          return '';
+        }
       }
 
-      if (line.includes('mavenCentral()')) {
+      if (line.includes('mavenCentral()') && mavenLines.length > 2) {
         return '';
       }
 

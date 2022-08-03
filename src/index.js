@@ -78,8 +78,8 @@ var Migrate = /** @class */ (function () {
     Migrate.prototype.rewritePackageJson = function () {
         var _this = this;
         var path = this.workingPath + 'package.json';
-        var podSpec = (0, fs_1.readFileSync)(path, { encoding: 'utf8' }).split(/\r\n|\n/);
-        var newLines = podSpec.map(function (line) {
+        var packageJson = (0, fs_1.readFileSync)(path, { encoding: 'utf8' }).split(/\r\n|\n/);
+        var newLines = packageJson.map(function (line) {
             var matchKey = Object.keys(changePackageVersion).find(function (key) { return line.includes(key); });
             if (matchKey) {
                 // @ts-ignore
@@ -134,13 +134,18 @@ var Migrate = /** @class */ (function () {
     Migrate.prototype.rewritePbxproj = function () {
         var _this = this;
         var path = this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj';
-        var pbxproj = (0, fs_1.readFileSync)(this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' }).split(/\r\n|\n/);
+        var pbxprojTxt = (0, fs_1.readFileSync)(this.workingPath + 'ios/Plugin.xcodeproj/project.pbxproj', { encoding: 'utf8' });
+        var isAddSupportsMaccatalyst = !pbxprojTxt.includes('SUPPORTS_MACCATALYST = NO');
+        var pbxproj = pbxprojTxt.split(/\r\n|\n/);
         var newLines = pbxproj.map(function (line, i) {
             if (line.includes('IPHONEOS_DEPLOYMENT_TARGET')) {
                 return line.replace(_this.RegD, '13.0');
             }
-            if (line.includes('SKIP_INSTALL')) {
-                return line + '\n\t\t\t\tSUPPORTS_MACCATALYST = NO';
+            if (line.includes('SKIP_INSTALL') && isAddSupportsMaccatalyst) {
+                return line + '\n\t\t\t\tSUPPORTS_MACCATALYST = NO;';
+            }
+            if (line.endsWith('SUPPORTS_MACCATALYST = NO')) {
+                return '\t\t\t\tSUPPORTS_MACCATALYST = NO;';
             }
             return line;
         });
@@ -154,6 +159,7 @@ var Migrate = /** @class */ (function () {
         var _this = this;
         var path = this.workingPath + 'android/build.gradle';
         var gradle = (0, fs_1.readFileSync)(path, { encoding: 'utf8' }).split(/\r\n|\n/);
+        var mavenLines = gradle.filter(function (d) { return d.includes('mavenCentral()'); });
         var newLines = gradle.map(function (line) {
             var matchKey = Object.keys(changeGradleVersion).find(function (key) { return line.includes(key); });
             if (matchKey) {
@@ -161,9 +167,15 @@ var Migrate = /** @class */ (function () {
                 return line.replace(_this.RegD, changeGradleVersion[matchKey]);
             }
             if (line.includes('jcenter()')) {
-                return '        mavenCentral()';
+                // if not use mavenCentral
+                if (mavenLines.length < 2) {
+                    return '        mavenCentral()';
+                }
+                else {
+                    return '';
+                }
             }
-            if (line.includes('mavenCentral()')) {
+            if (line.includes('mavenCentral()') && mavenLines.length > 2) {
                 return '';
             }
             if (line.includes('sourceCompatibility JavaVersion') || line.includes('targetCompatibility JavaVersion')) {
