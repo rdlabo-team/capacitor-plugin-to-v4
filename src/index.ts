@@ -158,7 +158,7 @@ class Migrate {
         return line.replace(this.RegD, '13.0');
       }
       if (line.includes('SKIP_INSTALL')) {
-        return line + '\n\t\t\t\tSUPPORTS_MACCATALYST = NO'
+        return line + '\n\t\t\t\tSUPPORTS_MACCATALYST = NO;'
       }
 
       return line;
